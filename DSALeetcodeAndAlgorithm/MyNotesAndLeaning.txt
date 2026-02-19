@@ -1,0 +1,2216 @@
+1. A subclass method cannot declare a new checked exception that is not declared in the superclass method.
+Unchecked exceptions are always allowed.
+Even though A doesn’t declare anything, B can throw an unchecked exception (RuntimeException)
+Reason: the compiler doesn’t require handling unchecked exceptions, so it’s “safe” to let a subclass throw them.
+Checked exception: subclass cannot add a new one the superclass doesn’t declare
+Unchecked exception: subclass can throw any unchecked exception freely
+| Superclass exception | Subclass can throw       | Notes                |
+| -------------------- | ------------------------ | -------------------- |
+| Checked              | Same checked or subclass | Fine                 |
+| Checked              | Unchecked                | Fine                 |
+| Checked              | New unrelated checked    | ❌ Compile-time error |
+| Unchecked            | Any unchecked            | Fine                 |
+| Unchecked            | Checked                  | ❌ Compile-time error |
+But if it has checked Exception they u can give unchecked Exception
+
+Exception rules in inheritance
+If a superclass method throws an unchecked exception (RuntimeException or its subclass), the subclass can throw the same unchecked exception or nothing. ✅
+If a superclass method throws a checked exception, the subclass can:
+Throw the same exception
+Throw a subclass of the exception
+Or throw no exception
+Cannot throw a new checked exception not declared in superclass
+Example:
+Case 1: Superclass throws a checked exception
+class A {
+    void fun() throws IOException {} // checked
+}
+class B extends A {
+    void fun() throws FileNotFoundException {} // allowed, subclass of IOException
+}
+class B extends A {
+    void fun() throws SQLException {} // ❌ Compile-time error
+}
+class B extends A {
+    void fun() throws RuntimeException {} // ✔
+}
+Unchecked exceptions (RuntimeException or subclasses) can always be thrown — compiler doesn’t enforce it.
+Case 2: Superclass throws unchecked exception
+class A {
+    void fun() throws RuntimeException {} // unchecked
+}
+
+1️⃣ Subclass throws any unchecked exception → ✅ allowed
+class B extends A {
+    void fun() throws ArithmeticException {} // ✔ allowed
+}
+Fine, ArithmeticException is unchecked.
+2️⃣ Subclass throws checked exception → ❌ NOT allowed
+class B extends A {
+    void fun() throws IOException {} 
+2. Deep Copy -> new Class(a.getA(), b.getB())
+Basically you create a new object in the heap and modify it.
+You create a new object and copy all values. Changes in the new object don’t affect the original.
+Example:
+class Person {
+    String name;
+    Address addr;    
+    Person(Person p) {  // deep copy
+        this.name = p.name;
+        this.addr = new Address(p.addr.city);
+    }
+}
+new Class(a.getA(), b.getB()) is basically the idea — new objects for nested objects.
+3. Shallow Copy this.Class=class; you modify this everywhere. Tight Coupling one depend on each other
+You copy the reference only, not the object itself.
+Changing the object via the new reference affects the original.
+Tight coupling example:
+class Person {
+    Address addr;
+    
+    Person(Person p) { // shallow copy
+        this.addr = p.addr; // same address object
+    }
+4. Aggregation -> is A relation a dog is a animal -> Extends  loose coupling
+class Animal {}
+class Dog {
+    Animal animal; // aggregation, Dog can exist without Animal
+}
+5. JDK has JRE + Libraries and JRE has JVM. JDK and other development kit.
+JVM → Java Virtual Machine, executes bytecode
+JRE → JVM + standard libraries
+JDK → JRE + development tools (javac, jar, etc.)
+6. When we right .java -> javac compiles to .class to byte code, then JVM loads the class (classloader). JIT(little fast) and Interpertor(read line by line) and make it as machine understandable code.
+Write .java → compile with javac → .class (bytecode)
+JVM loads class (classloader)
+Interpreter → reads bytecode line by line
+JIT → compiles hot code to machine code (faster)
+Executes on machine
+7. static runs first during class loader. static runs first then constructor then postconstruct
+static blocks → run once when class is loaded
+Constructors → run every time object is created
+If using @PostConstruct (Spring), it runs after constructor
+8. Composition -> tight coupling a car has a engine. private Engine engine then this engine is give in constrctor(){ this.engine=engine;
+class Engine {}
+class Car {
+    private Engine engine;
+    Car(Engine engine) { // composition
+        this.engine = engine;
+    }
+}
+9. ClassA a = new ClassB(); — Polymorphism
+
+If a subclass overrides a method from superclass, the subclass version is called at runtime.
+
+If the subclass doesn’t override a method, the superclass method is used.
+
+This is called runtime polymorphism / dynamic method dispatch.
+
+Example:
+
+class A {
+    void show() { System.out.println("A"); }
+}
+class B extends A {
+    void show() { System.out.println("B"); }
+    void extra() { System.out.println("Extra"); }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        A a = new B();
+        a.show();      // prints "B"
+        // a.extra();  // ❌ Compile-time error, reference type A doesn't have extra()
+    }
+}
+
+
+Key: Reference type decides what methods can be called (compile-time), object type decides which implementation runs (runtime).
+
+Interfaces and default methods use this concept — the default method runs if not overridden.
+
+10️. Objects and Heap
+
+When you create an object using new, object and its instance data are stored in the heap.
+
+References point to that heap object. Modifying the object through any reference affects the same object.
+
+Example:
+
+class Person { String name; }
+
+Person p1 = new Person();
+p1.name = "Alice";
+
+Person p2 = p1;  // both references point to same object
+p2.name = "Bob";
+
+System.out.println(p1.name);  // prints "Bob"
+
+
+Both p1 and p2 point to the same heap object.
+
+11 You cannot assign parent object to subclass reference
+Parent p = new Parent();
+Child c = (Child)p; // ❌ Compile-time / runtime error
+
+
+Why: The parent object may not have subclass-specific fields/methods.
+
+✅ Correct usage:
+
+Parent p = new Child(); // upcasting allowed
+
+12. UnmodifiableMap
+
+Collections.unmodifiableMap(map) creates a read-only view of a map.
+
+Any attempt to modify it throws UnsupportedOperationException.
+
+Map<String, String> map = new HashMap<>();
+map.put("a", "1");
+
+Map<String, String> unmod = Collections.unmodifiableMap(map);
+unmod.put("b", "2"); // ❌ Throws UnsupportedOperationException
+
+513. CopyOnWriteArrayList
+
+Thread-safe variant of ArrayList.
+
+Safe to iterate while modifying in multithreaded environments.
+
+CopyOnWriteArrayList<Integer> list = new CopyOnWriteArrayList<>();
+list.add(1);
+list.add(2);
+
+for (Integer i : list) {
+    list.add(3);  // ✅ no ConcurrentModificationException
+}
+
+14. equals() and hashCode()
+
+Always override both for proper behavior in Hash-based collections.
+
+Example:
+
+class Employee {
+    int id;
+    String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee e = (Employee)o;
+        return id == e.id && name.equals(e.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
+}
+
+public class TestHashCodeEquals {
+    public static void main(String[] args) {
+        Employee e1 = new Employee(1, "Alice");
+        Employee e2 = new Employee(1, "Alice");
+        Employee e3 = new Employee(2, "Bob");
+
+        System.out.println(e1.equals(e2)); // true
+        System.out.println(e1.equals(e3)); // false
+
+        Map<Employee, String> map = new HashMap<>();
+        map.put(e1, "Developer");
+        map.put(e2, "Tester"); // overwrites because hashCode and equals same
+        map.put(e3, "Manager");
+
+        System.out.println(map.size()); // 2
+        System.out.println(map.get(e1)); // Tester
+    }
+}
+Key Points:
+
+equals() checks logical equality (content)
+
+hashCode() must be consistent with equals
+
+Hash-based collections (HashMap, HashSet) use hashCode first, then equals
+Ensures HashMap or HashSet works correctly using both id and name.
+
+HashSet:
+import java.util.*;
+
+class Employee {
+    int id;
+
+    Employee(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;               // same reference
+        if (!(o instanceof Employee)) return false; // not same type
+        Employee e = (Employee) o;
+        return this.id == e.id;                   // compare only id
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);                  // hash based on id only
+    }
+}
+
+public class TestHashCodeEquals {
+    public static void main(String[] args) {
+        Employee e1 = new Employee(1);
+        Employee e2 = new Employee(1);
+        Employee e3 = new Employee(2);
+
+        System.out.println(e1.equals(e2)); // true, same id
+        System.out.println(e1.equals(e3)); // false, different id
+
+        Map<Employee, String> map = new HashMap<>();
+        map.put(e1, "Developer");
+        map.put(e2, "Tester"); // overwrites because same id
+        map.put(e3, "Manager");
+
+        System.out.println(map.size());      // 2
+        System.out.println(map.get(e1));     // Tester
+    }
+}
+
+HashMap with id as unique:
+import java.util.*;
+
+class Employee {
+    int id;
+    String name;
+
+    Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee e = (Employee) o;
+        return this.id == e.id;   // equality based only on id
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);   // hash based only on id
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Employee e1 = new Employee(1, "Alice");
+        Employee e2 = new Employee(1, "Bob");   // same id, different name
+        Employee e3 = new Employee(2, "Charlie");
+
+        System.out.println(e1.equals(e2)); // true, because id is same
+        System.out.println(e1.equals(e3)); // false, id is different
+
+        Map<Employee, String> map = new HashMap<>();
+        map.put(e1, "Developer");
+        map.put(e2, "Tester");   // overwrites e1 because id is same
+        map.put(e3, "Manager");
+
+        System.out.println(map.size());      // 2
+        System.out.println(map.get(e1));     // Tester
+    }
+}
+
+
+15. String pool
+
+String literals are stored in the string pool for reuse.
+
+new String("abc") creates a new object in heap.
+
+String s1 = "hello";         // pool
+String s2 = "hello";         // pool, reused
+System.out.println(s1 == s2); // true
+
+String s3 = new String("hello"); 
+System.out.println(s1 == s3); // false, different object in heap
+
+✅ Summary of key points with examples
+Concept	Key Idea	Example
+Runtime polymorphism	Subclass method runs if overridden	A a = new B(); a.show();
+Heap storage	new stores object & data in heap	Person p1 = new Person();
+Parent to subclass reference	❌ Not allowed	Child c = (Child)p; fails if p is not Child
+UnmodifiableMap	Cannot modify map	Collections.unmodifiableMap(map)
+CopyOnWriteArrayList	Safe concurrent modification	Iterating while adding works
+equals + hashCode	Correct behavior in HashMap/Set	id + name
+String pool	Literals reused, new creates heap object	"hello" == "hello" true, new String("hello") false
+
+16. Compile-time Polymorphism (Method Overloading)
+
+Compile-time polymorphism happens when methods have the same name but different parameters.
+
+The compiler decides which method to call based on reference type and parameters.
+
+class Calculator {
+    int add(int a, int b) {
+        return a + b;
+    }
+
+    double add(double a, double b) {
+        return a + b;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
+        System.out.println(calc.add(5, 10));     // calls int version → 15
+        System.out.println(calc.add(5.5, 2.5));  // calls double version → 8.0
+    }
+}
+
+
+✅ Key: Decision is made at compile time → method signature decides which method is called.
+
+17. Downcasting Example
+
+Downcasting converts a superclass reference pointing to a subclass object into a subclass reference.
+
+Must be safe — object must actually be the subclass.
+
+class Animal {
+    void sound() { System.out.println("Animal sound"); }
+}
+
+class Dog extends Animal {
+    void sound() { System.out.println("Dog barks"); }
+    void fetch() { System.out.println("Dog fetches"); }
+}
+
+public class TestDowncasting {
+    public static void main(String[] args) {
+        Animal a = new Dog(); // upcasting
+        a.sound();            // Dog barks (runtime polymorphism)
+
+        // a.fetch(); // ❌ Compile-time error (Animal reference doesn't know fetch)
+
+        // Downcasting
+        Dog d = (Dog) a; // safe because a actually refers to Dog
+        d.fetch();       // Dog fetches
+    }
+}
+
+
+✅ Key: Upcasting → automatic, downcasting → explicit with (Subclass)
+
+18. HashCode not required for list:
+class Employee {
+    int id;
+    String name;
+
+    Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    // Uncomment one of the equals() below to test
+
+    // 1️⃣ equals based on id only
+    /*
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee e = (Employee) o;
+        return this.id == e.id;
+    }
+    */
+
+    // 2️⃣ equals based on name only
+    /*
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee e = (Employee) o;
+        return this.name.equals(e.name);
+    }
+    */
+
+    // 3️⃣ equals based on id + name
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee e = (Employee) o;
+        return this.id == e.id && this.name.equals(e.name);
+    }
+}
+
+public class TestEquals {
+    public static void main(String[] args) {
+        Employee e1 = new Employee(1, "Alice");
+        Employee e2 = new Employee(1, "Alice");
+        Employee e3 = new Employee(1, "Bob");
+
+        System.out.println("e1.equals(e2) = " + e1.equals(e2)); // true
+        System.out.println("e1.equals(e3) = " + e1.equals(e3)); // depends on equals()
+    }
+}
+If equals() is based on id only:
+
+e1.equals(e2) → true
+
+e1.equals(e3) → true
+
+If equals() is based on name only:
+
+e1.equals(e2) → true
+
+e1.equals(e3) → false
+
+If equals() is based on id + name:
+
+e1.equals(e2) → true
+
+e1.equals(e3) → false
+
+if you dont add equals happens like below
+ 
+ class Employee {
+    int id;
+    String name;
+
+    Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+}
+
+public class TestList {
+    public static void main(String[] args) {
+        List<Employee> list = new ArrayList<>();
+        Employee e1 = new Employee(1, "Alice");
+        Employee e2 = new Employee(1, "Alice");
+
+        list.add(e1);
+
+        System.out.println(list.contains(e2)); // false! default equals checks reference
+    }
+}
+ 
+hashCode() is not required for List operations, because List does not use hashing (like HashSet or HashMap)
+
+You need hashCode() only when using objects in hash-based collections (HashSet, HashMap, HashTable)
+
+19. volatile
+
+Purpose: ensures visibility of changes to a variable across threads.
+
+Without volatile, one thread may not see updates made by another thread.
+
+class Counter {
+    volatile int count = 0;
+    
+    void increment() {
+        count++;
+    }
+}
+
+
+Note: volatile does not guarantee atomicity. If multiple threads do count++, race conditions can occur.
+
+
+Race Condition
+
+A race condition happens when two or more threads access and modify the same variable at the same time, and the final result depends on the order in which threads execute.
+
+Even if the variable is volatile, it does not make operations atomic — it only ensures visibility.
+
+Example with Counter
+class Counter {
+    volatile int count = 0;
+
+    void increment() {
+        count++; // NOT atomic
+    }
+}
+
+public class TestRace {
+    public static void main(String[] args) throws InterruptedException {
+        Counter counter = new Counter();
+
+        Runnable task = () -> {
+            for (int i = 0; i < 1000; i++) {
+                counter.increment();
+            }
+        };
+
+        Thread t1 = new Thread(task);
+        Thread t2 = new Thread(task);
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("Final count: " + counter.count);
+    }
+}
+
+Expected vs Actual
+
+Expected: 2000 (1000 increments by t1 + 1000 by t2)
+
+Actual: Often less than 2000
+
+Why?
+
+count++ is actually 3 steps under the hood:
+
+Read the value of count from memory
+
+Add 1 to the value
+
+Write the new value back to memory
+
+If two threads do this at the same time, steps can interleave:
+
+Thread 1 reads count = 5
+Thread 2 reads count = 5
+Thread 1 writes count = 6
+Thread 2 writes count = 6   <- lost update!
+
+
+This is the race condition.
+
+✅ Key Points
+
+volatile ensures all threads see the latest value.
+
+volatile does NOT make increment (or other compound operations) atomic.
+
+To avoid race conditions for count++, you can use:
+
+synchronized method/block
+
+AtomicInteger
+
+AtomicInteger count = new AtomicInteger(0);
+count.incrementAndGet(); // atomic
+
+with synchronized:
+class Counter {
+    int count = 0;
+
+    // synchronized ensures only one thread can execute at a time
+    synchronized void increment() {
+        count++;
+    }
+}
+
+public class TestSynchronized {
+    public static void main(String[] args) throws InterruptedException {
+        Counter counter = new Counter();
+
+        Runnable task = () -> {
+            for (int i = 0; i < 1000; i++) {
+                counter.increment();
+            }
+        };
+
+        Thread t1 = new Thread(task);
+        Thread t2 = new Thread(task);
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("Final count: " + counter.count); // always 2000
+    }
+}
+
+Threading
+volataile -> if one thread is doing some modification with some value other threads are notifed that its changed.
+syncronised -> if one thread to be run at a time
+callable -> call method returns something then use future.get and get the result
+runnable -> run method returns nothing
+
+Runnable vs Callable
+Feature	Runnable	Callable
+Method	void run()	V call()
+Return value	None	Yes
+Exception	Cannot throw checked	Can throw checked
+
+Example Runnable:
+
+Runnable task = () -> System.out.println("Running...");
+new Thread(task).start();
+
+
+Example Callable:
+
+Callable<Integer> task = () -> 42;
+ExecutorService executor = Executors.newFixedThreadPool(1);
+Future<Integer> future = executor.submit(task);
+System.out.println(future.get()); // 42
+executor.shutdown();
+
+ExecutorService
+
+Manages a thread pool for you.
+
+ExecutorService executor = Executors.newFixedThreadPool(3);
+executor.submit(() -> System.out.println("Task 1"));
+executor.submit(() -> System.out.println("Task 2"));
+executor.shutdown();
+
+
+Types of pools:
+
+newFixedThreadPool(n) → fixed number of threads
+
+Virtual threads (Java 21+) → lightweight threads, many can run concurrently without waiting
+
+5️⃣ Thread behavior in pools
+
+Worker threads: actual threads in the pool
+
+If all threads are busy:
+
+Fixed pool → tasks wait in queue
+
+Virtual threads → many can start without blocking
+
+6️⃣ CompletableFuture
+
+For asynchronous programming, can run tasks without blocking main thread.
+
+CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> 42);
+future.thenAccept(result -> System.out.println("Result: " + result));
+
+
+supplyAsync() → returns a result asynchronously
+
+runAsync() → no result
+
+✅ Quick summary
+Concept	Key Point
+volatile	visibility across threads
+synchronized	only one thread executes at a time
+Runnable	no return value, run()
+Callable	returns value, call(), can throw exception
+ExecutorService	manages thread pools, fixed or virtual
+CompletableFuture	async computation with callback
+
+
+ExecutorService Overview
+
+ExecutorService is a higher-level replacement for manually creating Threads.
+
+It manages a thread pool and handles task execution.
+
+Key methods:
+
+submit(Runnable/Callable) → submit tasks
+
+shutdown() → stop accepting new tasks
+
+shutdownNow() → attempt to stop running tasks
+
+2️⃣ Common ExecutorService Types
+a) Fixed Thread Pool
+
+Executors.newFixedThreadPool(int nThreads)
+
+Fixed number of threads, tasks wait in a queue if all threads are busy.
+
+ExecutorService fixedPool = Executors.newFixedThreadPool(3);
+
+for (int i = 1; i <= 5; i++) {
+    int task = i;
+    fixedPool.submit(() -> System.out.println("Task " + task + " executed by " + Thread.currentThread().getName()));
+}
+
+fixedPool.shutdown();
+
+
+Example: 3 threads, 5 tasks → 3 run immediately, 2 wait.
+
+b) Cached Thread Pool
+
+Executors.newCachedThreadPool()
+
+Creates new threads as needed, reuses idle threads.
+
+Good for short-lived asynchronous tasks.
+
+ExecutorService cachedPool = Executors.newCachedThreadPool();
+
+for (int i = 1; i <= 5; i++) {
+    int task = i;
+    cachedPool.submit(() -> System.out.println("Task " + task + " executed by " + Thread.currentThread().getName()));
+}
+
+cachedPool.shutdown();
+
+
+Threads die after 60 seconds of idleness.
+
+c) Single Thread Executor
+
+Executors.newSingleThreadExecutor()
+
+Only one thread executes tasks sequentially.
+
+Useful when tasks must run in order.
+
+ExecutorService singlePool = Executors.newSingleThreadExecutor();
+
+for (int i = 1; i <= 3; i++) {
+    int task = i;
+    singlePool.submit(() -> System.out.println("Task " + task + " executed by " + Thread.currentThread().getName()));
+}
+
+singlePool.shutdown();
+
+
+Tasks run one by one, always same thread.
+
+d) Scheduled Thread Pool
+
+Executors.newScheduledThreadPool(int nThreads)
+
+Executes tasks after a delay or periodically.
+
+ScheduledExecutorService scheduledPool = Executors.newScheduledThreadPool(2);
+
+scheduledPool.schedule(() -> System.out.println("Delayed task executed!"), 2, TimeUnit.SECONDS);
+scheduledPool.scheduleAtFixedRate(() -> System.out.println("Periodic task!"), 0, 1, TimeUnit.SECONDS);
+
+scheduledPool.shutdown();
+
+
+Good for cron-like tasks or repeated jobs.
+
+e) Virtual Thread Executor (Java 21+)
+
+Executors.newVirtualThreadPerTaskExecutor()
+
+Each task runs on a virtual thread (lightweight, managed by JVM).
+
+Can create thousands of concurrent tasks without blocking threads.
+
+ExecutorService virtualPool = Executors.newVirtualThreadPerTaskExecutor();
+
+for (int i = 1; i <= 5; i++) {
+    int task = i;
+    virtualPool.submit(() -> System.out.println("Task " + task + " executed by " + Thread.currentThread()));
+}
+
+virtualPool.shutdown();
+
+
+Threads are not OS threads, very lightweight, ideal for I/O-heavy apps.
+
+3️⃣ Summary Table
+Type	Threads	Task Behavior	Use Case
+FixedThreadPool	Fixed number	Tasks wait in queue	CPU-bound, limited concurrency
+CachedThreadPool	Dynamic	Creates new threads as needed	Short-lived async tasks
+SingleThreadExecutor	1	Executes sequentially	Tasks must run in order
+ScheduledThreadPool	Fixed number	Delay or periodic execution	Scheduled/cron tasks
+VirtualThreadPerTaskExecutor	Lightweight	Each task gets virtual thread	Massive concurrent tasks
+
+With synchronized :
+class Counter {
+    int count = 0;
+
+    synchronized void increment() { // only one thread at a time
+        count++;
+    }
+}
+
+public class TestExecutor {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService pool = Executors.newFixedThreadPool(3);
+        Counter counter = new Counter();
+
+        for (int i = 0; i < 1000; i++) {
+            pool.submit(counter::increment);
+        }
+
+        pool.shutdown();
+        pool.awaitTermination(1, TimeUnit.MINUTES);
+
+        System.out.println("Final count: " + counter.count); // always 1000
+    }
+}
+
+class Counter {
+    AtomicInteger count = new AtomicInteger(0);
+
+    void increment() {
+        count.incrementAndGet(); // atomic, no synchronized needed
+    }
+}
+
+
+ExecutorService manages threads, but does not automatically synchronize shared data.
+
+You only need synchronized (or atomic variables) when tasks access shared mutable state.
+
+For completely independent tasks that don’t share data, no synchronization is needed.
+20. Abstraction
+
+Purpose: Hides implementation details, shows only what the object can do.
+
+Achieved using:
+
+Abstract classes → can have abstract + concrete methods
+
+Interfaces → only abstract methods (default/static methods allowed in Java 8+)
+
+Example:
+
+abstract class Animal {
+    abstract void sound(); // abstract method, implementation hidden
+}
+
+class Dog extends Animal {
+    void sound() {
+        System.out.println("Woof");
+    }
+}
+
+Abstract Method
+
+Definition: A method without a body (no implementation).
+
+Declared with abstract keyword.
+
+Example:
+
+abstract class Animal {
+    abstract void sound(); // abstract method → no body
+}
+
+
+Key point: Subclasses must provide implementation (unless the subclass is also abstract).
+
+2️⃣ Concrete Method
+
+Definition: A method with a body / implementation.
+
+Can be in abstract or regular classes.
+
+Example in abstract class:
+
+abstract class Animal {
+    abstract void sound();  // abstract method
+    
+    void sleep() {          // concrete method
+        System.out.println("Sleeping...");
+    }
+}
+
+
+sleep() is concrete because it has an implementation.
+
+Subclasses inherit it automatically and don’t need to override it.
+
+Example usage:
+
+class Dog extends Animal {
+    void sound() {
+        System.out.println("Woof");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Dog dog = new Dog();
+        dog.sound(); // Woof
+        dog.sleep(); // Sleeping...
+    }
+}
+
+
+sound() → abstract, must override
+
+sleep() → concrete, inherited
+21. Encapsulation
+
+Purpose: Hides the internal state, exposes only controlled access via getters/setters.
+
+Achieved using private variables and public getter/setter methods.
+
+class Person {
+    private String name;
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+
+22. Functional Interfaces (Java 8+)
+Interface	Method	Input	Output
+Supplier	get()	none	returns value
+Predicate	test(T t)	takes value	boolean
+Function	apply(T t)	takes value	returns value
+Consumer	accept(T t)	takes value	returns nothing
+
+Example:
+
+Supplier<String> supplier = () -> "Hello";
+Predicate<Integer> isEven = n -> n % 2 == 0;
+Function<Integer, Integer> square = n -> n * n;
+Consumer<String> printer = s -> System.out.println(s);
+
+23. Immutable Objects
+
+Definition: Objects whose state cannot be changed after creation.
+
+Examples: String, Integer, Enum, Record.
+
+24. How to Create an Immutable Class
+
+Class declared final → cannot be subclassed
+
+All variables private and final
+
+No setters, only getters
+
+Initialize fields via constructor
+
+Example:
+
+final class Employee {
+    private final int id;
+    private final String name;
+
+    public Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+}
+
+
+Once created:
+
+Employee e = new Employee(1, "Alice");
+// e.id = 2; // ❌ not allowed
+
+25. ENUM
+1️⃣ Basic Enum
+enum A {
+    SET, HELLO, MOON
+}
+
+public class TestEnum {
+    public static void main(String[] args) {
+        A value = A.SET;
+        System.out.println(value); // SET
+    }
+}
+
+
+enum defines a fixed set of constants.
+
+Access using EnumName.CONSTANT → A.SET.
+
+Constants are implicitly public static final.
+
+2️⃣ Enum with fields and methods
+
+You can add properties and methods to enum constants.
+
+enum A {
+    SET(1), HELLO(2), MOON(3); // constants with a value
+
+    private final int code;      // field
+
+    A(int code) {                // constructor
+        this.code = code;
+    }
+
+    public int getCode() {       // method
+        return code;
+    }
+}
+
+public class TestEnum {
+    public static void main(String[] args) {
+        System.out.println(A.SET);        // SET
+        System.out.println(A.SET.getCode()); // 1
+    }
+}
+
+
+Enum constructors are private by default.
+
+You can associate extra data with each constant.
+
+3️⃣ Enum with List or other collections
+
+You can have fields of any type, including List.
+
+enum A {
+    SET(List.of("one", "two")),
+    HELLO(List.of("hello")),
+    MOON(List.of("moon"));
+
+    private final List<String> values;
+
+    A(List<String> values) {
+        this.values = values;
+    }
+
+    public List<String> getValues() {
+        return values;
+    }
+}
+
+public class TestEnum {
+    public static void main(String[] args) {
+        System.out.println(A.SET.getValues()); // [one, two]
+        System.out.println(A.MOON.getValues()); // [moon]
+    }
+}
+
+
+Each enum constant can have its own list of values.
+
+This is common in strategy enums, where behavior or data is attached to each constant.
+
+✅ Key Points About Enums
+
+Enums are special classes in Java.
+
+Enum constants are static, final, and instances of the enum class.
+
+Enums can have fields, constructors, and methods.
+
+You can even override methods per constant:
+
+enum A {
+    SET {
+        @Override
+        void print() { System.out.println("SET method"); }
+    },
+    HELLO {
+        @Override
+        void print() { System.out.println("HELLO method"); }
+    },
+    MOON {
+        @Override
+        void print() { System.out.println("MOON method"); }
+    };
+
+    abstract void print();
+}
+public class TestEnum {
+    public static void main(String[] args) {
+        A a1 = A.SET;
+        A a2 = A.HELLO;
+        A a3 = A.MOON;
+
+        a1.print(); // calls SET's print
+        a2.print(); // calls HELLO's print
+        a3.print(); // calls MOON's print
+    }
+}
+
+26. Sealed Class:
+A sealed class can be concrete (with method implementations) or abstract.
+
+The purpose of sealed is not about abstract methods — it’s about controlling which classes can extend it.
+
+So in your example:
+// Sealed class
+sealed class A permits B, C {
+    // class body
+}
+
+// Only B and C can extend A
+final class B extends A { }
+non-sealed class C extends A { } // optional: can be extended further
+sealed class A implements D permits B, C { }
+interface D { void doSomething(); }
+
+sealed class A implements D permits B, C {
+    public void hello() { System.out.println("Hello from A"); }
+}
+
+final class B extends A {
+    public void doSomething() { System.out.println("B doing something"); }
+}
+
+non-sealed class C extends A {
+    public void doSomething() { System.out.println("C doing something"); }
+}
+sealed abstract class A implements D permits B, C {
+    public void hello() { System.out.println("Hello from A"); }
+}
+interface D {
+    void doSomething();
+}
+sealed class A implements D permits B, C {
+    public void hello() { System.out.println("Hello from A"); }
+    public void doSomething() { System.out.println("Implemented in A"); }
+}
+sealed class A implements D permits B, C {
+    public void hello() { System.out.println("Hello from A"); }
+}
+public class TestSealed {
+    public static void main(String[] args) {
+        A b = new B();
+        A c = new C();
+        
+        b.hello(); // Hello from A
+        c.hello(); // Hello from A
+    }
+}
+27. Default and static methods in Interface :
+Default Methods
+
+Introduced in Java 8
+
+Purpose: Provide a default implementation for a method in an interface.
+
+Subclasses inherit it automatically, but can override if needed.
+
+You need an object to call it (cannot call via interface name).
+
+Example:
+
+interface MyInterface {
+    default void greet() {
+        System.out.println("Hello from default method");
+    }
+}
+
+class MyClass implements MyInterface {
+}
+
+public class TestDefault {
+    public static void main(String[] args) {
+        MyClass obj = new MyClass();
+        obj.greet(); // Hello from default method
+    }
+}
+
+
+greet() is optional to override.
+
+If MyClass overrides it, its version is called instead.
+
+2️⃣ Static Methods
+
+Also introduced in Java 8
+
+Belongs to the interface itself, not to the object.
+
+Called using Interface name, cannot be overridden by implementing classes.
+
+Example:
+
+interface MyInterface {
+    static void staticGreet() {
+        System.out.println("Hello from static method");
+    }
+}
+
+class MyClass implements MyInterface {
+}
+
+public class TestStatic {
+    public static void main(String[] args) {
+        MyInterface.staticGreet(); // Hello from static method
+        // MyClass.staticGreet(); // ❌ Not allowed
+    }
+}
+
+28. Internal Working of HashSet and HashMap:
+HashMap put() behavior
+
+Hashing: Key (e.g., "Roopa") → hash code → bucket index in underlying array.
+
+Bucket: Each index holds a linked list (or tree if many collisions, Java 8+) of key-value pairs.
+
+Case 1 — New key:
+
+map.put("Roopa", 1); // hashed, bucket index created, entry added
+
+
+Case 2 — Collision (same bucket, different key):
+
+map.put("Apoor", 2); // same bucket → linked list of nodes created
+
+
+Case 3 — Same key:
+
+map.put("Roopa", 2); // key exists → value updated (overwrites previous)
+
+2️⃣ putIfAbsent()
+
+Adds only if key does not exist.
+
+Does not overwrite existing values.
+
+map.putIfAbsent("Roopa", 3); // key exists → value remains 2
+
+3️⃣ computeIfAbsent()
+
+If key does not exist, compute value and add.
+
+If key exists → do nothing.
+
+map.computeIfAbsent("Roopa", k -> 100); // key exists → value remains 2
+map.computeIfAbsent("NewKey", k -> 50); // key absent → value 50 added
+
+4️⃣ computeIfPresent()
+
+If key exists, compute new value and update.
+
+If key absent → do nothing.
+
+map.computeIfPresent("Roopa", (k,v) -> v+10); // value updated to 12
+map.computeIfPresent("AbsentKey", (k,v) -> 5); // key absent → nothing happens
+
+5️⃣ HashSet behavior
+
+Implemented using HashMap internally:
+
+HashSet<String> set = new HashSet<>();
+set.add("Roopa"); 
+
+
+Internally → map.put("Roopa", PRESENT)
+
+If you add("Roopa") again → checks contains("Roopa") → does not add duplicate.
+
+6️⃣ Key points
+
+HashMap: Key → hashed → bucket → linked list / tree → value stored
+
+HashSet: Uses a HashMap internally; values ignored, only keys matter
+
+put → adds or updates
+
+putIfAbsent → adds only if absent
+
+computeIfAbsent → computes only if absent
+
+computeIfPresent → computes only if present
+
+
+
+29. ClassLoader Basics
+
+Purpose: Load .class files (bytecode) into the JVM at runtime.
+
+Hierarchy:
+
+ClassLoader	Loads
+Bootstrap	Core Java classes (java.lang.*, rt.jar)
+Extension (Platform)	ext or lib/ext classes
+System / Application	Classes from your application’s classpath
+
+Every class in JVM is loaded by some ClassLoader.
+
+2️⃣ When main() is executed
+
+Suppose you have:
+
+public class TestClass {
+    public static void main(String[] args) {
+        System.out.println("Hello World");
+    }
+}
+
+Step-by-Step Execution
+
+JVM starts → loads bootstrap classes (like java.lang.Object, java.lang.String) using Bootstrap ClassLoader.
+
+ClassLoader loads your class (TestClass) → System/Application ClassLoader reads TestClass.class from classpath.
+
+main() method is found in the loaded class.
+
+main() is public static void main(String[] args) → static, JVM can call without creating an object.
+
+Memory allocation:
+
+JVM creates a stack frame for main().
+
+Any objects created inside main() go to heap.
+
+Bytecode execution:
+
+The interpreter reads bytecode line by line or JIT compiler converts hot code to native machine code for faster execution.
+
+Program terminates:
+
+JVM frees stack frames, GC may clean heap objects.
+
+3️⃣ Diagram of Class Loading & Execution
+        JVM Startup
+            |
+    Bootstrap ClassLoader (loads java.lang.*)
+            |
+    Extension ClassLoader (loads extension libs)
+            |
+    System / App ClassLoader (loads TestClass.class)
+            |
+    TestClass loaded → main() found
+            |
+    Stack frame created → main() executed
+            |
+    Heap objects created as needed
+            |
+    JIT compiler optimizes hot code
+            |
+    Program ends → GC cleans heap
+
+4️⃣ Key Points for Interview
+
+main() is static, JVM calls it without creating an object.
+
+Classes are loaded lazily when first referenced.
+
+Static blocks in the class are executed before main(), during class loading.
+
+class Test {
+    static { System.out.println("Static block"); }
+    public static void main(String[] args) { System.out.println("Main"); }
+}
+
+
+Output:
+
+Static block
+Main
+
+
+Shows class loaded → static block runs → main runs.
+
+ClassLoader Basics
+
+Loads classes into JVM.
+
+Types:
+
+Bootstrap → JVM core classes
+
+Extension → ext library
+
+System → classpath classes
+
+ClassLoader loader = ClassLoader.getSystemClassLoader();
+System.out.println(loader.getClass().getName());
+
+
+30. JIT Compiler & Garbage Collection
+
+JIT (Just-In-Time) Compiler: Converts bytecode → machine code at runtime → improves performance
+
+GC (Garbage Collection): Cleans unused objects to free heap
+
+Types of GC: Serial, Parallel, CMS, G1
+
+31. Inner Classes
+Type	Example
+Static	static class Inner {} → can access static members only
+Non-static	class Inner {} → can access outer class members
+Local	Defined inside method
+Anonymous	Inline class definition: Runnable r = new Runnable() { ... }
+
+31. Memory Basics
+
+Stack: Stores method calls, local variables → LIFO, memory freed automatically
+
+Heap: Stores objects → garbage collected
+
+Method Area: Stores class metadata, static variables
+
+String Pool: Stores literals, reused to save memory
+
+String s1 = "Hello";       // Stored in String Pool
+String s2 = new String("Hello"); // Stored in Heap
+
+32. Wrapper Classes & Autoboxing/Unboxing
+Integer i = 10;        // Autoboxing: int → Integer
+int j = i;             // Unboxing: Integer → int
+
+33. ConcurrentHashMap & Iterators
+
+Thread-safe Map, allows concurrent read/writes.
+
+Fail-fast iterator: HashMap → throws ConcurrentModificationException if modified during iteration.
+
+Fail-safe iterator: ConcurrentHashMap → allows modification during iteration.
+
+ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
+map.put("A", 1);
+map.put("B", 2);
+
+for (String key : map.keySet()) {
+    map.put("C", 3); // works fine, no exception
+}
+
+34. Custom Exceptions
+class MyException extends Exception {
+    MyException(String msg) { super(msg); }
+}
+
+public class TestCustomException {
+    public static void main(String[] args) {
+        try {
+            throw new MyException("Something went wrong");
+        } catch (MyException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+class Service {
+    void doSomething(int value) throws MyException {
+        if (value < 0) {
+            throw new MyException("Value cannot be negative");
+        }
+        System.out.println("Value is fine: " + value);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Service s = new Service();
+        try {
+            s.doSomething(-5);
+        } catch (MyException e) {
+            System.out.println("Caught exception: " + e.getMessage());
+        }
+    }
+}
+
+
+Checked exceptions → must be declared
+
+Unchecked exceptions → extend RuntimeException
+
+35. JVM Memory Management
+Heap Structure
+
+Young Generation: Short-lived objects
+
+Eden → new objects created here
+
+Survivor Spaces: S0, S1 → objects surviving minor GC
+
+Old Generation: Long-lived objects (promoted from young gen)
+
+Permanent/Metaspace: Class metadata
+
+Minor GC: Cleans young generation
+Major GC: Cleans old generation
+
+36. finalize()
+
+Called by GC before destroying an object.
+
+Not guaranteed to run. Use try-with-resources or explicit cleanup instead.
+
+class Demo {
+    @Override
+    protected void finalize() throws Throwable {
+        System.out.println("Object is being garbage collected");
+    }
+}
+
+public class TestFinalize {
+    public static void main(String[] args) {
+        Demo d = new Demo();
+        d = null;
+        System.gc(); // Suggests GC
+    }
+}
+
+37. clone()
+
+Purpose: Create a copy of an object.
+
+Must implement Cloneable interface, otherwise CloneNotSupportedException is thrown.
+
+class Employee implements Cloneable {
+    int id;
+    String name;
+
+    Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+}
+
+public class TestClone {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Employee e1 = new Employee(1, "Alice");
+        Employee e2 = (Employee) e1.clone();
+        System.out.println(e2.name); // Alice
+    }
+}
+
+
+Shallow copy → primitive fields copied, object references are shared.
+
+Deep copy → create new objects for reference fields.
+Employee e1 = new Employee(1, "Alice");
+Employee e2 = (Employee) e1.clone();
+e2.name = "Roopa";
+Employee implements Cloneable and uses super.clone() → this is a shallow copy.
+
+Shallow copy rules:
+
+Primitive fields (like int id) → copied → independent in e1 and e2.
+
+Reference fields (like String name) → copied as references → both objects point to the same object.
+
+But in this case, String is immutable in Java.
+
+Step-by-step:
+e1.name = "Alice" → String literal in the String pool
+
+e2 = e1.clone() → e2.name points to same "Alice" literal
+
+e2.name = "Roopa" → e2.name now points to a new String literal "Roopa"
+
+Important: The name field now points to a different String object. Immutable strings make shallow copy behave almost like deep copy for this field.
+
+Result:
+System.out.println(e1.name); // Alice
+System.out.println(e2.name); // Roopa
+e1.name remains Alice because strings are immutable and assigning a new string to e2.name does not modify the original object.
+
+⚠️ If name were mutable (like StringBuilder):
+class Employee implements Cloneable {
+    int id;
+    StringBuilder name;
+
+    Employee(int id, StringBuilder name) { this.id = id; this.name = name; }
+
+    protected Object clone() throws CloneNotSupportedException { return super.clone(); }
+}
+
+Employee e1 = new Employee(1, new StringBuilder("Alice"));
+Employee e2 = (Employee) e1.clone();
+
+e2.name.append("X"); // modifies same object!
+System.out.println(e1.name); // AliceX
+Here, shallow copy means e1 and e2 share the same mutable object.
+
+Deep Copy:
+Goal: Create a completely independent copy of the object, including all reference fields.
+
+Solution: Manually clone the references inside clone().
+
+class Employee implements Cloneable {
+    int id;
+    StringBuilder name; // mutable
+
+    Employee(int id, StringBuilder name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    // Deep copy
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Employee cloned = (Employee) super.clone(); // shallow copy first
+        cloned.name = new StringBuilder(this.name.toString()); // clone mutable field
+        return cloned;
+    }
+}
+
+public class TestDeepCopy {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Employee e1 = new Employee(1, new StringBuilder("Alice"));
+        Employee e2 = (Employee) e1.clone();
+
+        e2.name.append("X");
+
+        System.out.println(e1.name); // Alice (unchanged)
+        System.out.println(e2.name); // AliceX
+    }
+}
+
+
+✅ Result:
+
+e1.name is not affected by changes in e2.name.
+
+All mutable fields must be copied manually.
+38. Memory leak -
+What is a Memory Leak?
+
+Definition: Memory leak occurs when objects are no longer needed by the program but cannot be garbage collected because some references are still held.
+
+Effect: Over time, your program consumes more memory → can cause OutOfMemoryError.
+
+2️⃣ How Memory Leak Happens in Java
+
+Even though Java has Garbage Collection (GC), leaks can happen if references are unintentionally retained.
+
+Common causes:
+
+Static Collections holding objects
+
+class LeakExample {
+    static List<Employee> employeeList = new ArrayList<>();
+
+    void addEmployee(Employee e) {
+        employeeList.add(e); // never removed → memory leak
+    }
+}
+
+
+Listeners / Callbacks not removed
+
+button.addActionListener(listener);
+// never removed → listener keeps reference alive
+
+
+Caches without eviction
+
+Map<Integer, Employee> cache = new HashMap<>();
+// keeps growing → old objects never removed
+
+
+Inner classes holding outer class reference
+
+class Outer {
+    class Inner { }
+}
+// Inner instance keeps reference to Outer → prevents GC
+
+
+Unclosed resources (before Java 7)
+
+File, stream, database connection not closed → memory and resource leak.
+
+3️⃣ Example of a Simple Memory Leak
+import java.util.ArrayList;
+import java.util.List;
+
+public class MemoryLeakDemo {
+    static List<int[]> list = new ArrayList<>();
+
+    public static void main(String[] args) {
+        while (true) {
+            list.add(new int[1000]); // objects kept in static list → never GC’d
+        }
+    }
+}
+
+
+Problem: Static list keeps growing → memory usage increases → eventually OutOfMemoryError.
+
+4️⃣ How to Avoid Memory Leaks
+
+Remove references when not needed (list.remove(obj)).
+
+Use weak references for caches:
+
+Map<Integer, WeakReference<Employee>> cache = new HashMap<>();
+
+
+Deregister listeners when no longer needed.
+
+Use try-with-resources for streams and connections:
+
+try (FileInputStream fis = new FileInputStream("file.txt")) { ... }
+
+
+Avoid unnecessary static fields holding objects.
+
+5️⃣ Key Points for Interview
+
+Java GC does not prevent memory leaks if references are retained.
+
+Memory leak ≠ memory not freed — it’s memory unreachable but still referenced.
+
+Can lead to OutOfMemoryError over time in long-running applications.
+
+39. Another Deep and Shallow copy example without clone:
+class Employee {
+    int id;
+    String name; // immutable for simplicity
+
+    Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    // getters
+    int getId() { return id; }
+    String getName() { return name; }
+}
+2️⃣ Reference Assignment (Shallow)
+Employee e1 = new Employee(1, "Roopa");
+Employee e2 = e1; // just another reference
+e1.name = "Ashwin"; // changing e1
+System.out.println(e2.name); // ?
+Explanation:
+
+e1 and e2 point to the same object.
+
+Changing e1.name changes the same object.
+
+Output:
+
+Ashwin
+3️⃣ Manual “Deep Copy” (without clone)
+Employee e1 = new Employee(1, "Roopa");
+Employee e2 = new Employee(e1.getId(), e1.getName()); // new object
+
+e1.name = "Ashwin";
+System.out.println(e1.getName()); // Ashwin
+System.out.println(e2.getName()); // Roopa
+Explanation:
+
+e2 is a completely new object.
+
+Modifying e1 does not affect e2.
+
+✅ This is manual deep copy.
+
+4️⃣ If name were mutable (like StringBuilder)
+class Employee {
+    int id;
+    StringBuilder name;
+
+    Employee(int id, StringBuilder name) { this.id=id; this.name=name; }
+}
+Reference Assignment:
+Employee e1 = new Employee(1, new StringBuilder("Roopa"));
+Employee e2 = e1;
+
+e1.name.append("X");
+System.out.println(e2.name); // RoopaX → same object
+Manual Deep Copy:
+Employee e1 = new Employee(1, new StringBuilder("Roopa"));
+Employee e2 = new Employee(e1.getId(), new StringBuilder(e1.getName()));
+
+e1.name.append("X");
+System.out.println(e1.name); // RoopaX
+System.out.println(e2.name); // Roopa → different object
+
+
+With clone:
+Employee Class with Cloneable
+class Employee implements Cloneable {
+    int id;
+    StringBuilder name; // mutable field
+
+    Employee(int id, StringBuilder name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone(); // shallow copy
+    }
+}
+
+2️⃣ Shallow Copy using clone()
+public class TestShallowClone {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Employee e1 = new Employee(1, new StringBuilder("Roopa"));
+        Employee e2 = (Employee) e1.clone(); // shallow copy
+
+        e1.name.append("X"); // modifying mutable field
+
+        System.out.println(e1.name); // RoopaX
+        System.out.println(e2.name); // RoopaX → shallow copy shares same StringBuilder
+    }
+}
+
+
+Explanation:
+
+super.clone() creates a new Employee object. ✅
+
+But fields like StringBuilder name are copied as references, so both e1 and e2 share the same name object.
+
+Modifying e1.name affects e2.name.
+
+3️⃣ Deep Copy using clone()
+class Employee implements Cloneable {
+    int id;
+    StringBuilder name; // mutable
+
+    Employee(int id, StringBuilder name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Employee cloned = (Employee) super.clone(); // shallow copy first
+        cloned.name = new StringBuilder(this.name.toString()); // deep copy mutable field
+        return cloned;
+    }
+}
+
+public class TestDeepClone {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Employee e1 = new Employee(1, new StringBuilder("Roopa"));
+        Employee e2 = (Employee) e1.clone(); // deep copy
+
+        e1.name.append("X"); // modify e1
+
+        System.out.println(e1.name); // RoopaX
+        System.out.println(e2.name); // Roopa → e2 unaffected
+    }
+}
+
+
+Explanation:
+
+super.clone() creates a new Employee object. ✅
+
+Then we manually clone the mutable field name. ✅
+
+Now e1 and e2 are completely independent.
+
+
+
+40. HashTable
+Hashtable is a legacy class in Java (java.util.Hashtable).
+
+It stores key-value pairs.
+
+Synchronized, so thread-safe.
+
+Does not allow null keys or values.
+
+2️⃣ Simple Example
+import java.util.Hashtable;
+
+public class TestHashtable {
+    public static void main(String[] args) {
+        // Create a Hashtable
+        Hashtable<Integer, String> table = new Hashtable<>();
+
+        // Add elements
+        table.put(1, "Alice");
+        table.put(2, "Bob");
+        table.put(3, "Charlie");
+
+        System.out.println("Hashtable: " + table);
+
+        // Access element
+        String name = table.get(2);
+        System.out.println("Key 2 value: " + name);
+
+        // Remove element
+        table.remove(3);
+        System.out.println("After removing key 3: " + table);
+
+        // Check if key exists
+        System.out.println("Contains key 1? " + table.containsKey(1));
+
+        // Iterate over Hashtable
+        for (Integer key : table.keySet()) {
+            System.out.println("Key: " + key + ", Value: " + table.get(key));
+        }
+    }
+}
+
+3️⃣ Output
+Hashtable: {3=Charlie, 2=Bob, 1=Alice}
+Key 2 value: Bob
+After removing key 3: {2=Bob, 1=Alice}
+Contains key 1? true
+Key: 2, Value: Bob
+Key: 1, Value: Alice
+
+
+Note: Hashtable internally uses buckets and hashing.
+Keys are hashed → determines bucket → values stored there.
+
+4️⃣ Key Points for Interview
+Feature	Hashtable	HashMap
+Thread safety	Synchronized	Not synchronized
+Null key/value allowed	No	Key: 1 null, Value: many null allowed
+Legacy class	Yes	No (modern)
+Iteration order	Unordered	Unordered
+Iterator type	Enumerator/fail-fast	Fail-fast
+
+
+41. Fail Fast and Fail Safe:
+
+Fail-Fast
+
+Definition: Iterators that immediately throw ConcurrentModificationException if the collection is modified while iterating (except through the iterator itself).
+
+Collections: ArrayList, HashMap, HashSet (most non-concurrent collections)
+
+Example:
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class FailFastExample {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("Alice");
+        list.add("Bob");
+        list.add("Charlie");
+
+        Iterator<String> it = list.iterator();
+
+        while (it.hasNext()) {
+            System.out.println(it.next());
+            list.add("David"); // modifying list directly
+        }
+    }
+}
+
+
+Output:
+
+Alice
+Exception in thread "main" java.util.ConcurrentModificationException
+
+
+✅ Explanation:
+
+Direct modification of list while using iterator → fail-fast behavior.
+
+2️⃣ Fail-Safe
+
+Definition: Iterators that do NOT throw ConcurrentModificationException if the collection is modified while iterating.
+
+Collections: CopyOnWriteArrayList, ConcurrentHashMap
+
+Mechanism: Fail-safe iterators iterate over a clone/copy of the collection.
+
+Example with CopyOnWriteArrayList:
+
+import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public class FailSafeExample {
+    public static void main(String[] args) {
+        CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<>();
+        list.add("Alice");
+        list.add("Bob");
+        list.add("Charlie");
+
+        Iterator<String> it = list.iterator();
+
+        while (it.hasNext()) {
+            System.out.println(it.next());
+            list.add("David"); // safe, no exception
+        }
+
+        System.out.println("Final list: " + list);
+    }
+}
+
+
+Output:
+
+Alice
+Bob
+Charlie
+Final list: [Alice, Bob, Charlie, David, David, David]
+
+
+✅ Explanation:
+
+Iterator works on a snapshot of the list → modifications don’t affect the iteration.
+
+This is fail-safe.
+
+3️⃣ Key Differences Table
+Feature	Fail-Fast	Fail-Safe
+Throws Exception	✅ ConcurrentModificationException	❌
+Iterates over	Original collection	Copy/snapshot of collection
+Collections	ArrayList, HashMap, HashSet	CopyOnWriteArrayList, ConcurrentHashMap
+Performance	Fast	Slower (copies made)
+Use Case	Single-threaded	Multi-threaded safe iteration
+
+Fail-fast → “fail immediately to detect concurrent modification”
+
+Fail-safe → “safe to modify during iteration, usually slower”
+import java.util.Hashtable;
+
+public class TestNullHashtable {
+    public static void main(String[] args) {
+        Hashtable<Integer, String> table = new Hashtable<>();
+
+        table.put(null, "Alice");  // ❌ Throws NullPointerException
+        table.put(1, null);         // ❌ Throws NullPointerException
+    }
+}
+
+42. JVM Monitoring & Profiling (What you wrote is CORRECT)
+jvisualvm
+
+Used mostly in dev / testing
+
+Detect memory leaks
+
+See heap usage
+
+Observe thread count growth
+
+Monitor GC behavior visually
+
+👉 Best when learning & debugging locally.
+
+JConsole
+
+Monitor memory pools (Eden, Survivor, Old Gen)
+
+Threads (RUNNABLE / BLOCKED / WAITING)
+
+MBeans (JMX monitoring)
+
+👉 Lightweight monitoring tool.
+
+Java Flight Recorder (JFR) ⭐
+
+Production-safe, very low overhead.
+
+Run:
+
+-XX:StartFlightRecording=duration=60s,filename=recording.jfr
+
+
+You can analyze:
+
+GC pauses
+
+Allocation hotspots
+
+Thread contention
+
+Lock blocking causes
+
+IO wait time
+
+CPU hotspots
+
+Use JDK Mission Control (JMC) to open .jfr.
+
+GC Logs
+-Xlog:gc*
+
+
+Analyze with:
+
+GCViewer
+
+GCeasy
+
+JMC
+
+What to watch:
+
+Frequent Minor GC → high allocation rate
+
+Frequent Full GC → Old Gen pressure
+
+Long GC pauses → latency spikes
+
+Heap Dump
+Analyze memory leaks
+Dominator tree
+Retained size
+
+Tools:
+VisualVM
+Eclipse MAT
+
+Thread Dump
+Used to detect:
+Deadlocks
+Thread starvation
+BLOCKED threads
+
+Command:
+jstack <pid>
+
+🔴 43. Deadlock (VERY IMPORTANT INTERVIEW TOPIC)
+What is Deadlock?
+
+A situation where two or more threads are waiting forever for each other’s locks.
+
+Simple Deadlock Example
+class DeadlockExample {
+    static final Object lock1 = new Object();
+    static final Object lock2 = new Object();
+
+    public static void main(String[] args) {
+
+        Thread t1 = new Thread(() -> {
+            synchronized (lock1) {
+                System.out.println("Thread 1: Holding lock1");
+                try { Thread.sleep(100); } catch (Exception e) {}
+                synchronized (lock2) {
+                    System.out.println("Thread 1: Holding lock2");
+                }
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            synchronized (lock2) {
+                System.out.println("Thread 2: Holding lock2");
+                try { Thread.sleep(100); } catch (Exception e) {}
+                synchronized (lock1) {
+                    System.out.println("Thread 2: Holding lock1");
+                }
+            }
+        });
+
+        t1.start();
+        t2.start();
+    }
+}
+
+What happens?
+
+Thread-1 holds lock1, waits for lock2
+
+Thread-2 holds lock2, waits for lock1
+
+❌ Both wait forever → DEADLOCK
+
+Deadlock Conditions (Coffman Conditions)
+
+All 4 must be true:
+
+Mutual Exclusion – only one thread can hold a lock
+
+Hold and Wait – thread holds one lock and waits for another
+
+No Preemption – lock can’t be forcefully taken
+
+Circular Wait – circular dependency of locks
+44. Static Block runs first, instance second third is only constructor
