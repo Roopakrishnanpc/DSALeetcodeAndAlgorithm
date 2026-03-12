@@ -36,7 +36,7 @@ public class LevelOrderTraversal {
 		System.out.println(size(root));
 		printLeafNodes(root);
 	}
-
+//1 -> 2 ->3 
 	private static void zigzagTraversal(Node root) {
 		// TODO Auto-generated method stub
 		if (root == null)
